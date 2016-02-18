@@ -18,14 +18,4 @@ Dotenv.load(
 
 opts = {}
 
-if %w(production).include? ENV["RACK_ENV"]
-  opts = {
-    :statsd => {
-      :host      => ENV["STATSD_HOST"],
-      :port      => 8125,
-      :namespace => "croissant"
-    }
-  }
-end
-
 Mozart::Logger.setup opts, ENV["APP_LOG_LOCATION"]

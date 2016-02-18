@@ -7,7 +7,7 @@ require "bundler"
 
 config = { :env => ENV["RACK_ENV"] }
 
-Faye::WebSocket.load_adapter "puma"
+Faye::WebSocket.load_adapter "thin"
 use Faye::RackAdapter, :mount => "/faye", :timeout => 45, :extensions => []
 use Rack::CommonLogger, Alephant::Logger.get_logger
 

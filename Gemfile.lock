@@ -102,6 +102,7 @@ PLATFORMS
 
 DEPENDENCIES
   alephant-logger
+  bbc-cosmos-config
   dotenv
   faraday
   faye

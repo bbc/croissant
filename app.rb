@@ -20,7 +20,7 @@ module Crosaint
 
     set :public_folder, File.expand_path("../", __FILE__)
     set :port, 9292
-    set :faye_client, Faye::Client.new("http://vote.bbcnewshq.com:8080/faye")
+    set :faye_client, Faye::Client.new("http://localhost:9292/faye")
     set :saved_data, Hash.new([])
 
     before do
