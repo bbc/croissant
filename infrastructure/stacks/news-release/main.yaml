@@ -229,9 +229,9 @@
       Properties:
         SecurityGroupIngress:
           -
-            ToPort: 80
+            ToPort: 443
             IpProtocol: "tcp"
-            FromPort: 80
+            FromPort: 443
             CidrIp: "0.0.0.0/0"
         VpcId:
           Ref: "VpcId"
@@ -241,15 +241,15 @@
       Properties:
         SecurityGroupIngress:
           -
-            FromPort: 8080
-            ToPort: 8080
+            FromPort: 7443
+            ToPort: 7443
             IpProtocol: "tcp"
             SourceSecurityGroupId:
               Ref: "LoadBalancerSecurityGroup"
           -
-            FromPort: 0
-            ToPort: 6000
-            IpProtocol: "udp"
+            FromPort: 7080
+            ToPort: 7080
+            IpProtocol: "tcp"
             CidrIp: "0.0.0.0/0"
         VpcId:
           Ref: "VpcId"
@@ -267,15 +267,15 @@
             Ref: "PublicSubnet3Id"
         Listeners:
           -
-            InstancePort: 8080
-            LoadBalancerPort: 80
+            InstancePort: 7443
+            LoadBalancerPort: 443
             Protocol: "tcp"
             InstanceProtocol: "tcp"
         Policies:
           -
             PolicyName: "EnableProxyProtocol"
             InstancePorts:
-              - "8080"
+              - "7443"
             PolicyType: "ProxyProtocolPolicyType"
             Attributes:
               -
@@ -287,7 +287,7 @@
         HealthCheck:
           HealthyThreshold: 3
           Interval: 15
-          Target: "HTTP:8080/status"
+          Target: "HTTP:7080/status"
           Timeout: 10
           UnhealthyThreshold: 3
         ConnectionDrainingPolicy:
