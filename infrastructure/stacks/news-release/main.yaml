@@ -229,9 +229,9 @@
       Properties:
         SecurityGroupIngress:
           -
-            ToPort: 443
+            ToPort: 8080
             IpProtocol: "tcp"
-            FromPort: 443
+            FromPort: 8080
             CidrIp: "0.0.0.0/0"
         VpcId:
           Ref: "VpcId"
@@ -241,17 +241,16 @@
       Properties:
         SecurityGroupIngress:
           -
-            FromPort: 7443
-            ToPort: 7443
+            FromPort: 8080
+            ToPort: 8080
             IpProtocol: "tcp"
             SourceSecurityGroupId:
               Ref: "LoadBalancerSecurityGroup"
           -
-            FromPort: 7080
-            ToPort: 7080
-            IpProtocol: "tcp"
-            SourceSecurityGroupId:
-              Ref: "LoadBalancerSecurityGroup"
+            FromPort: 0
+            ToPort: 6000
+            IpProtocol: "udp"
+            CidrIp: "0.0.0.0/0"
         VpcId:
           Ref: "VpcId"
         GroupDescription: "A component security group allowing access only from the corresponding ELB"
@@ -268,17 +267,27 @@
             Ref: "PublicSubnet3Id"
         Listeners:
           -
-            InstancePort: 7443
-            LoadBalancerPort: 443
+            InstancePort: 8080
+            LoadBalancerPort: 80
             Protocol: "tcp"
             InstanceProtocol: "tcp"
+        Policies:
+          -
+            PolicyName: "EnableProxyProtocol"
+            InstancePorts:
+              - "8080"
+            PolicyType: "ProxyProtocolPolicyType"
+            Attributes:
+              -
+                Name: "ProxyProtocol"
+                Value: "true"
         SecurityGroups:
           -
             Ref: "LoadBalancerSecurityGroup"
         HealthCheck:
           HealthyThreshold: 3
           Interval: 15
-          Target: "HTTP:7080/status"
+          Target: "HTTP:8080/status"
           Timeout: 10
           UnhealthyThreshold: 3
         ConnectionDrainingPolicy:

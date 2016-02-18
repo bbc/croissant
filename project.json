@@ -4,13 +4,14 @@
     "type": "custom_service",
     "application_port": 8080,
     "requires": [
-      "puma-init-ruby"
+      "puma-init-ruby",
+      "cloud-httpd24-ssl-services-devs-staff"
     ]
   },
   "handle": [
     {
       "path": "/",
-      "https": true
+      "http": true
     }
   ]
 }
