@@ -21,12 +21,14 @@ module Crosaint
     set :public_folder, File.expand_path("../", __FILE__)
     set :port, 9292
     set :faye_client, Faye::Client.new("http://localhost:9292/faye")
+    set :saved_data, Hash.new([])
 
     before do
       request.path_info.sub! %r{/$}, ""
     end
 
     get "/" do
+      @saved_data = settings.saved_data
       erb :index
     end
 
@@ -37,16 +39,22 @@ module Crosaint
       "hello"
     end
 
-    post "/questions" do
-      content_type :json
-      message = ::JSON.parse request.body.read
-      settings.faye_client.publish("/question", message)
-      {:response => "Question Sent"}.to_json
-    end
-
     post "/" do
       content_type :json
+      message = ::JSON.parse request.body.read
+      settings.faye_client.publish("blue", message)
+      settings.saved_data["/blue"] += [message]
+      "added"
+    end
 
+    post "/questions" do
+      channel = params["channel"]
+      message = params["message"]
+
+      settings.faye_client.publish(channel, message)
+      settings.saved_data[channel] += [message]
+
+      redirect to("/")
     end
 
     get "/status" do
