@@ -4,8 +4,7 @@
     "type": "custom_service",
     "application_port": 8080,
     "requires": [
-      "puma-init-ruby",
-      "cloud-httpd24-ssl-services-devs-staff"
+      "puma-init-ruby"
     ]
   },
   "custom_log_locations": [
@@ -14,7 +13,9 @@
   "handle": [
     {
       "path": "/",
-      "https": true
+      "https": true,
+      "allow_dev_certs": true,
+      "allow_desktop_certs": false
     }
   ]
 }
