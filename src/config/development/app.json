@@ -1,0 +1,7 @@
+{
+  "configuration": {
+    "cert_location": "",
+    "key_location" : "",
+    "timeout": "2"
+  }
+}

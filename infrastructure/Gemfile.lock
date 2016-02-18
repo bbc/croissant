@@ -1,0 +1,30 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    aws-sdk (1.63.0)
+      aws-sdk-v1 (= 1.63.0)
+    aws-sdk-v1 (1.63.0)
+      json (~> 1.4)
+      nokogiri (>= 1.4.4)
+    bbc-cosmos-tools (0.8.0)
+      aws-sdk (~> 1.63.0)
+      cfndsl
+      faraday
+      highline
+      thor
+    cfndsl (0.1.18)
+    faraday (0.9.1)
+      multipart-post (>= 1.2, < 3)
+    highline (1.7.2)
+    json (1.8.3)
+    mini_portile (0.6.2)
+    multipart-post (2.0.0)
+    nokogiri (1.6.6.2)
+      mini_portile (~> 0.6.0)
+    thor (0.19.1)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  bbc-cosmos-tools

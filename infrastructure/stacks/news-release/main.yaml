@@ -1,0 +1,369 @@
+---
+  AWSTemplateFormatVersion: "2010-09-09"
+  Parameters:
+    Environment:
+      Type: "String"
+      MaxLength: 6
+      Default: "int"
+    PrivateSubnet1Id:
+      Type: "String"
+      Default: "subnet-4397761a"
+    PrivateSubnet2Id:
+      Type: "String"
+      Default: "subnet-166cc873"
+    PrivateSubnet3Id:
+      Type: "String"
+      Default: "subnet-4d9b593a"
+    UpdatePauseTime:
+      Type: "String"
+      Description: "The time to wait between new instances coming online and the next batch being killed during an ASG update."
+      Default: "PT0S"
+    UpdateMaxBatchSize:
+      Type: "String"
+      Description: "The maximum number of instances to be killed at one time during an ASG update."
+      Default: 1
+    UpdateMinInService:
+      Type: "String"
+      Description: "The minimum number of instances in service during an ASG update."
+      Default: 0
+    MinSize:
+      Type: "String"
+      Description: "The minimum number of instances"
+      Default: 1
+    MaxSize:
+      Type: "String"
+      Description: "The maximum number of instances"
+      Default: 1
+    HealthCheckGracePeriod:
+      Type: "String"
+      Description: "The length of time in seconds after a new EC2 instance comes into service that Auto Scaling starts checking its health."
+      Default: 600
+    InstanceType:
+      Type: "String"
+      Description: "The size of the instances"
+      Default: "t2.micro"
+    BastionAccessSecurityGroup:
+      Type: "String"
+      Description: "The security group that allows access from the bastions"
+      Default: "sg-176fc272"
+    ImageId:
+      Type: "String"
+      Default: "ami-42718735"
+    KeyName:
+      Type: "String"
+      Default: "cosmos"
+    CPUAlarmHighEvalPeriods:
+      Type: "String"
+      Default: "1"
+    CPUAlarmHighThreshold:
+      Type: "String"
+      Default: "80"
+    CPUAlarmLowThreshold:
+      Type: "String"
+      Default: "60"
+    CPUAlarmLowEvalPeriods:
+      Type: "String"
+      Default: "5"
+    AlarmPeriod:
+      Type: "String"
+      Default: "60"
+    VpcId:
+      Type: "String"
+      Default: "vpc-ef916f8a"
+    PublicSubnet1Id:
+      Type: "String"
+      Default: "subnet-4297761b"
+    PublicSubnet2Id:
+      Type: "String"
+      Default: "subnet-176cc872"
+    PublicSubnet3Id:
+      Type: "String"
+      Default: "subnet-4e9b5939"
+    ELBConnectionDraining:
+      Type: "String"
+      Description: "Connection draining ensures that the load balancer completes serving all in-flight requests made to a registered instance when the instance is deregistered or becomes unhealthy"
+      Default: 30
+    CnameEntry:
+      Type: "String"
+      Description: "The CNAME entry for the component"
+      Default: "release.news.int"
+    AccountDomainNameBase:
+      Type: "String"
+      Description: "Base domain name (ending with a '.') under which new DNS entries are added"
+      Default: "7808afff336f64a7.xhst.bbci.co.uk."
+    S3BucketArn:
+      Type: "String"
+      Description: "s3 logging arn"
+      Default: "arn:aws:s3:::int-logs-s3bucket-9tmpzu3qut95"
+  Resources:
+    ComponentAutoScalingGroup:
+      Type: "AWS::AutoScaling::AutoScalingGroup"
+      UpdatePolicy:
+        AutoScalingRollingUpdate:
+          MinInstancesInService:
+            Ref: "UpdateMinInService"
+          MaxBatchSize:
+            Ref: "UpdateMaxBatchSize"
+          PauseTime:
+            Ref: "UpdatePauseTime"
+      Properties:
+        Tags:
+          -
+            Value: "Responsive-News"
+            PropagateAtLaunch: true
+            Key: "BBCProject"
+          -
+            Value:
+              Ref: "Environment"
+            PropagateAtLaunch: true
+            Key: "BBCEnvironment"
+          -
+            Value: "news-release"
+            PropagateAtLaunch: true
+            Key: "BBCComponent"
+          -
+            Value: "news-release"
+            PropagateAtLaunch: true
+            Key: "Name"
+        LoadBalancerNames:
+          -
+            Ref: "ComponentElasticLoadBalancer"
+        MinSize:
+          Ref: "MinSize"
+        MaxSize:
+          Ref: "MaxSize"
+        VPCZoneIdentifier:
+          -
+            Ref: "PrivateSubnet1Id"
+          -
+            Ref: "PrivateSubnet2Id"
+          -
+            Ref: "PrivateSubnet3Id"
+        LaunchConfigurationName:
+          Ref: "ComponentLaunchConfiguration"
+        AvailabilityZones:
+          - "eu-west-1a"
+          - "eu-west-1b"
+          - "eu-west-1c"
+        HealthCheckType: "ELB"
+        HealthCheckGracePeriod:
+          Ref: "HealthCheckGracePeriod"
+    ComponentLaunchConfiguration:
+      Type: "AWS::AutoScaling::LaunchConfiguration"
+      Properties:
+        KeyName:
+          Ref: "KeyName"
+        SecurityGroups:
+          -
+            Ref: "BastionAccessSecurityGroup"
+          -
+            Ref: "ComponentSecurityGroup"
+        InstanceType:
+          Ref: "InstanceType"
+        IamInstanceProfile:
+          Ref: "ComponentInstanceProfile"
+        ImageId:
+          Ref: "ImageId"
+    ComponentScaleUpPolicy:
+      Type: "AWS::AutoScaling::ScalingPolicy"
+      Properties:
+        AutoScalingGroupName:
+          Ref: "ComponentAutoScalingGroup"
+        AdjustmentType: "ChangeInCapacity"
+        Cooldown: 240
+        ScalingAdjustment: 1
+    ComponentScaleDownPolicy:
+      Type: "AWS::AutoScaling::ScalingPolicy"
+      Properties:
+        AutoScalingGroupName:
+          Ref: "ComponentAutoScalingGroup"
+        AdjustmentType: "ChangeInCapacity"
+        Cooldown: 60
+        ScalingAdjustment: -1
+    CPUAlarmHigh:
+      Type: "AWS::CloudWatch::Alarm"
+      Properties:
+        AlarmDescription: "Scale-up if CPU > 80% for 1 minutes"
+        Threshold:
+          Ref: "CPUAlarmHighThreshold"
+        AlarmActions:
+          -
+            Ref: "ComponentScaleUpPolicy"
+        ComparisonOperator: "GreaterThanThreshold"
+        EvaluationPeriods:
+          Ref: "CPUAlarmHighEvalPeriods"
+        MetricName: "CPUUtilization"
+        Namespace: "AWS/EC2"
+        Statistic: "Average"
+        Period:
+          Ref: "AlarmPeriod"
+        Dimensions:
+          -
+            Name: "AutoScalingGroupName"
+            Value:
+              Ref: "ComponentAutoScalingGroup"
+    CPUAlarmLow:
+      Type: "AWS::CloudWatch::Alarm"
+      Properties:
+        AlarmDescription: "Scale-down if CPU < 60% for 5 minutes"
+        Threshold:
+          Ref: "CPUAlarmLowThreshold"
+        AlarmActions:
+          -
+            Ref: "ComponentScaleDownPolicy"
+        ComparisonOperator: "LessThanThreshold"
+        EvaluationPeriods:
+          Ref: "CPUAlarmLowEvalPeriods"
+        MetricName: "CPUUtilization"
+        Namespace: "AWS/EC2"
+        Statistic: "Average"
+        Period:
+          Ref: "AlarmPeriod"
+        Dimensions:
+          -
+            Name: "AutoScalingGroupName"
+            Value:
+              Ref: "ComponentAutoScalingGroup"
+    LoadBalancerSecurityGroup:
+      Type: "AWS::EC2::SecurityGroup"
+      Properties:
+        SecurityGroupIngress:
+          -
+            ToPort: 443
+            IpProtocol: "tcp"
+            FromPort: 443
+            CidrIp: "0.0.0.0/0"
+        VpcId:
+          Ref: "VpcId"
+        GroupDescription: "An ELB group allowing access only to from the corresponding component"
+    ComponentSecurityGroup:
+      Type: "AWS::EC2::SecurityGroup"
+      Properties:
+        SecurityGroupIngress:
+          -
+            FromPort: 7443
+            ToPort: 7443
+            IpProtocol: "tcp"
+            SourceSecurityGroupId:
+              Ref: "LoadBalancerSecurityGroup"
+          -
+            FromPort: 7080
+            ToPort: 7080
+            IpProtocol: "tcp"
+            SourceSecurityGroupId:
+              Ref: "LoadBalancerSecurityGroup"
+        VpcId:
+          Ref: "VpcId"
+        GroupDescription: "A component security group allowing access only from the corresponding ELB"
+    ComponentElasticLoadBalancer:
+      Type: "AWS::ElasticLoadBalancing::LoadBalancer"
+      Properties:
+        CrossZone: true
+        Subnets:
+          -
+            Ref: "PublicSubnet1Id"
+          -
+            Ref: "PublicSubnet2Id"
+          -
+            Ref: "PublicSubnet3Id"
+        Listeners:
+          -
+            InstancePort: 7443
+            LoadBalancerPort: 443
+            Protocol: "tcp"
+            InstanceProtocol: "tcp"
+        SecurityGroups:
+          -
+            Ref: "LoadBalancerSecurityGroup"
+        HealthCheck:
+          HealthyThreshold: 3
+          Interval: 15
+          Target: "HTTP:7080/status"
+          Timeout: 10
+          UnhealthyThreshold: 3
+        ConnectionDrainingPolicy:
+          Enabled: true
+          Timeout:
+            Ref: "ELBConnectionDraining"
+    ComponentInstanceProfile:
+      Type: "AWS::IAM::InstanceProfile"
+      Properties:
+        Path: "/"
+        Roles:
+          -
+            Ref: "ReleaseRole"
+    EC2ComponentPolicy:
+      Type: "AWS::IAM::Policy"
+      Properties:
+        PolicyDocument:
+          Statement:
+            -
+              Action:
+                - "cloudwatch:*"
+              Resource:
+                - "*"
+              Effect: "Allow"
+            -
+              Action:
+                - "cloudformation:Describe*"
+              Resource:
+                - "*"
+              Effect: "Allow"
+            -
+              Action:
+                - "ec2:Describe*"
+              Resource:
+                - "*"
+              Effect: "Allow"
+            -
+              Action:
+                - "s3:*"
+              Resource:
+                -
+                  Ref: "S3BucketArn"
+                -
+                  Fn::Join:
+                    - ""
+                    -
+                      -
+                        Ref: "S3BucketArn"
+                      - "/*"
+              Effect: "Allow"
+
+        PolicyName: "EC2ComponentPolicy"
+        Roles:
+          -
+            Ref: "ReleaseRole"
+    ReleaseRole:
+      Type: "AWS::IAM::Role"
+      Properties:
+        Path: "/"
+        AssumeRolePolicyDocument:
+          Statement:
+            -
+              Action:
+                - "sts:AssumeRole"
+              Effect: "Allow"
+              Principal:
+                Service:
+                  - "ec2.amazonaws.com"
+    ComponentDNS:
+      Type: "AWS::Route53::RecordSet"
+      Properties:
+        TTL: 60
+        HostedZoneName:
+          Ref: "AccountDomainNameBase"
+        Type: "CNAME"
+        ResourceRecords:
+          -
+            Fn::GetAtt:
+              - "ComponentElasticLoadBalancer"
+              - "DNSName"
+        Name:
+          Fn::Join:
+            - "."
+            -
+              -
+                Ref: "CnameEntry"
+              -
+                Ref: "AccountDomainNameBase"

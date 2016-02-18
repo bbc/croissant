@@ -1,0 +1,15 @@
+bbc:
+  cosmos:
+    api: 'https://api.live.bbc.co.uk'
+    config_endpoint: '/cosmos/env/%s/component/%s/configuration'
+    stack_create_endpoint: '/cosmos/env/%s/component/%s/stacks/create'
+    stack_update_endpoint: '/cosmos/env/%s/component/%s/stack/%s/update'
+    deployments: '/cosmos/deployments/component/%s/env/%s'
+    release: '/cosmos/component/%s/releases'
+    deploy: '/cosmos/env/%s/component/%s/deploy_release'
+    snapshot_deploy: '/cosmos/env/%s/component/%s/deploy_snapshot'
+    stack_events: '/cosmos/env/%s/component/%s/stack/%s/events'
+    stacks: '/cosmos/env/%s/component/%s/stacks'
+    stack_delete: '/cosmos/env/%s/component/%s/stack/%s/delete'
+    stack_details: '/cosmos/env/%s/component/%s/stack/%s'
+    stack_template: '/cosmos/env/%s/component/%s/stack/%s/template'

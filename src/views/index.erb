@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Sinatra Faye Example</title>
+    <script type="text/javascript" src="//code.jquery.com/jquery-1.12.0.min.js"></script>
+    <script type="text/javascript" src="http://localhost:9292/faye/client.js"></script>
+    <script type="text/javascript" src="/assets/countdown.js"></script>
+    <script type="text/javascript" src="/assets/ws.js"></script>
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+  </head>
+
+  <body>
+    <div class="container">
+      <h1>Sinatra Faye Example</h1>
+      <p class="lead">Where Ruby Sinatra API meets Javascript Faye WebSockets</p>
+
+      <div id="countdown">00:00</div>
+
+      <button id="yes">YES</button>
+      <button id="no">NO</button>
+
+      <div class="row">
+        <div class="col-md-3">
+          <div class="panel panel-info">
+            <div class="panel-heading">Blue messages</div>
+            <div class="panel-body">
+              <ul id="blue-messages">
+                <%
+                  # The below block is only used for loading historical
+                  # saved data, not the Faye data!
+                %>
+                <% @saved_data['/blue'].each do |message| %>
+                  <li><%= message %></li>
+                <% end %>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-3">
+          <div class="panel panel-success">
+            <div class="panel-heading">Green messages</div>
+            <div class="panel-body">
+              <ul id="green-messages">
+                <%
+                  # The below block is only used for loading historical
+                  # saved data, not the Faye data!
+                %>
+                <% @saved_data['/green'].each do |message| %>
+                  <li><%= message %></li>
+                <% end %>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-3">
+          <div class="panel panel-danger">
+            <div class="panel-heading">Red messages</div>
+            <div class="panel-body">
+              <ul id="red-messages">
+                <%
+                  # The below block is only used for loading historical
+                  # saved data, not the Faye data!
+                %>
+                <% @saved_data['/red'].each do |message| %>
+                  <li><%= message %></li>
+                <% end %>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-3">
+          <div class="panel panel-warning">
+            <div class="panel-heading">Yellow messages</div>
+            <div class="panel-body">
+              <ul id="yellow-messages">
+                <%
+                  # The below block is only used for loading historical
+                  # saved data, not the Faye data!
+                %>
+                <% @saved_data['/yellow'].each do |message| %>
+                  <li><%= message %></li>
+                <% end %>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </body>
+</html>

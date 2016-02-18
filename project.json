@@ -1,0 +1,16 @@
+{
+  "name": "news-release",
+  "packaging": {
+    "type": "custom_service",
+    "application_port": 8080,
+    "requires": [
+      "puma-init-ruby"
+    ]
+  },
+  "handle": [
+    {
+      "path": "/",
+      "https": true
+    }
+  ]
+}
