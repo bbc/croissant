@@ -229,9 +229,9 @@
       Properties:
         SecurityGroupIngress:
           -
-            ToPort: 8080
+            ToPort: 80
             IpProtocol: "tcp"
-            FromPort: 8080
+            FromPort: 80
             CidrIp: "0.0.0.0/0"
         VpcId:
           Ref: "VpcId"

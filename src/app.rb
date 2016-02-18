@@ -41,19 +41,23 @@ module Crosaint
 
     post "/questions" do
       content_type :json
-      message = request.body.read
+      message = ::JSON.parse request.body.read
       settings.faye_client.publish("/blue", message)
       settings.saved_data["/blue"] += [message]
-      message
+      message.to_json
     end
 
-    post "/response" do
-      # channel = params["channel"]
-      # message = params["message"]
-      # settings.faye_client.publish(channel, message)
-      # settings.saved_data[channel] += [message]
+    post "/" do
+      channel = params['channel']
+      message = params['message']
 
-      # redirect to("/")
+      # Send data out to connected clients
+      settings.faye_client.publish( channel, message )
+
+      # Save data for future clients
+      settings.saved_data[channel] += [message]
+
+      redirect to( '/' )
     end
 
     get "/status" do

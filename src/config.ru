@@ -1,6 +1,6 @@
 require_relative "env"
 
-# require "bbc/cosmos/config"
+require "bbc/cosmos/config"
 require "./app"
 require "faye"
 require "bundler"

@@ -10,7 +10,11 @@
   "handle": [
     {
       "path": "/",
-      "http": true
+      "http": true,
+      "https": false,
+      "allow_dev_certs": true,
+      "allow_desktop_certs": true,
+      "client_certs": "off"
     }
   ]
 }
