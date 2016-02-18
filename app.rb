@@ -20,7 +20,7 @@ module Crosaint
 
     set :public_folder, File.expand_path("../", __FILE__)
     set :port, 9292
-    set :faye_client, Faye::Client.new("http://localhost:9292/faye")
+    set :faye_client, Faye::Client.new("http://vote.bbcnewshq.com:8080/faye")
     set :saved_data, Hash.new([])
 
     before do
@@ -40,14 +40,6 @@ module Crosaint
     end
 
     post "/" do
-      content_type :json
-      message = ::JSON.parse request.body.read
-      settings.faye_client.publish("blue", message)
-      settings.saved_data["/blue"] += [message]
-      "added"
-    end
-
-    post "/questions" do
       channel = params["channel"]
       message = params["message"]
 
@@ -55,6 +47,14 @@ module Crosaint
       settings.saved_data[channel] += [message]
 
       redirect to("/")
+    end
+
+    post "/questions" do
+      content_type :json
+      message = ::JSON.parse request.body.read
+      settings.faye_client.publish("blue", message)
+      settings.saved_data["/blue"] += [message]
+      { :repsonse => "added quetsion" }.to_json
     end
 
     get "/status" do
