@@ -14,6 +14,7 @@ module Crosaint
 
     def initialize(config)
       @config = config
+      @dynamo_db = AWS::DynamoDB::Client.new :api_version => "2012-08-10"
       configure
       super()
     end
@@ -34,22 +35,45 @@ module Crosaint
     end
 
     get "/questions" do
+      data = @dynamo_db.scan :table_name => "hack_day"
+      data[:member].to_json
     end
 
     get "/questions/:id" do
-      "hello"
+      data = @dynamo_db.get_item({ :table_name => "hack_day", :key => { "QuestionID" => { :s => params[:id] } } })
+      data[:item].to_json
     end
 
     post "/" do
       content_type :json
       resp = ::JSON.parse request.body.read
+
+      data = @dynamo_db.get_item({ :table_name => "hack_day", :key => { "QuestionID" => { :s => resp["QuestionID"] } } })
+      count = data[:item][resp["answer"]][:s].to_i
+      result = count + 1
+
+      @dynamo_db.update_item(
+        :table_name        => "hack_day",
+        :key               => {
+          "QuestionID" => { :s => resp["QuestionID"] }
+        },
+        :attribute_updates => {
+          resp["answer"] => {
+            :value  => {
+              :s => result.to_s
+            },
+            :action => "PUT"
+          }
+        }
+
+      )
       { :repsonse => "added answer", :voted => resp["vote"]}.to_json
     end
 
     post "/questions" do
       content_type :json
       resp = ::JSON.parse request.body.read
-      message = {'QuestionID' => SecureRandom.uuid}.merge(resp)
+      message = { "QuestionID" => SecureRandom.uuid }.merge(resp)
       settings.faye_client.publish("/clients", message.to_s)
       store_question(message)
       { :response => "added question" }.to_json
@@ -64,6 +88,7 @@ module Crosaint
         s.configure { s.disable :show_exceptions, :raise_errors }
       end
     end
+
     def store_question(message)
       @table.items.create(message)
     end
