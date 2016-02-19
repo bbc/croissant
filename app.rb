@@ -5,6 +5,8 @@ require "rest-client"
 require "openssl"
 require "json"
 require "faye"
+require "yaml"
+require "pry"
 
 module Crosaint
   class App < Sinatra::Base
@@ -32,6 +34,10 @@ module Crosaint
       erb :index
     end
 
+    get "/client" do
+      erb :client
+    end
+
     get "/questions" do
     end
 
@@ -51,13 +57,10 @@ module Crosaint
 
     post "/questions" do
       content_type :json
-      # message = ::JSON.parse request.body.read
-      # settings.faye_client.publish("blue", message)
-      # settings.saved_data["/blue"] += [message]
       resp = ::JSON.parse request.body.read
       message = {'QuestionID' => SecureRandom.uuid}.merge(resp)
       settings.faye_client.publish("/clients", message.to_s)
-      { :response => "added question" }.to_json
+      { :response => "added question", :voted => resp["vote"] }.to_json
     end
 
     get "/status" do
