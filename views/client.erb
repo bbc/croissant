@@ -27,6 +27,7 @@
       <div class="container">
         <div class="row">
           <p id="the-question">
+            ...waiting for the first topic discussion
           </p>
         </div>
       </div>
@@ -56,22 +57,32 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
     <script type="text/javascript" src="http://localhost:9292/faye/client.js"></script>
     <script>
+    // Hide stuff
+
     $('#progressBar').hide();
+    $("#vote-yes").hide()
+    $("#vote-no").hide()
+
     // Voting
 
     $("#vote-yes").bind("click", function(){
-      post_data("yes")
+      post_data("yes", question_id)
     })
 
     $("#vote-no").bind("click", function(){
-      post_data("no")
+      post_data("no", question_id)
     })
 
-    function post_data(vote) {
+    function post_data(vote, id) {
+      json_data = JSON.stringify({
+        vote: vote,
+        QuestionID: id
+      })
+      console.log("user data posted:", json_data)
       $.ajax({
         method: "POST",
         url: "/",
-        data: JSON.stringify({ vote: vote })
+        data: json_data
       })
       .fail(function(jQxhr, status, err){
         console.error(jQxhr, status, err)
@@ -99,6 +110,7 @@
 
       data = JSON.parse(data);
 
+      question_id = data.QuestionID;
       var _initial = data.startTime;
       var _end = data.endTime
       var fromTime = new Date(_initial);
@@ -110,13 +122,19 @@
 
       var time_passed_in_seconds = Math.floor((currentDifferenceTravel) / (1000));
       var allowed_timeframe_in_seconds = Math.floor((totalDifferenceTravel) / (1000));
+      var time_remaining = allowed_timeframe_in_seconds - time_passed_in_seconds
 
-      //console.log("time passed: %s (%s)", time_passed_in_seconds/60, time_passed_in_seconds);
-      //console.log("allowed time: %s (%s)", allowed_timeframe_in_seconds/60, allowed_timeframe_in_seconds);
+      console.log("allowed time: %s (%s)", allowed_timeframe_in_seconds/60, allowed_timeframe_in_seconds);
+      console.log("time passed: %s (%s)", time_passed_in_seconds/60, time_passed_in_seconds);
+      console.log("time remaining: %s (%s)", time_remaining/60, time_remaining);
 
       $('#the-question').text(data.questionText)
       $('#progressBar').show()
-      progress(time_passed_in_seconds, allowed_timeframe_in_seconds, $('#progressBar'));
+      $("#vote-yes").show()
+      $("#vote-no").show()
+
+      progress(time_remaining, allowed_timeframe_in_seconds, $('#progressBar'));
+      //progress(10, 10, $('#progressBar'));
     });
 
     // Progress bar
@@ -128,6 +146,14 @@
         setTimeout(function() {
           progress(timeleft - 1, timetotal, $element);
         }, 1000);
+      } else {
+        window.setTimeout(function(){
+          alert("This topic discussion has now ended")
+          $('#the-question').text("...waiting for the next topic discussion")
+          $('#progressBar').hide()
+          $("#vote-yes").hide()
+          $("#vote-no").hide()
+        }, 1000)
       }
     };
     </script>

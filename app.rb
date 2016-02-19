@@ -76,7 +76,7 @@ module Crosaint
       resp = ::JSON.parse request.body.read
       message = { "QuestionID" => SecureRandom.uuid }.merge(resp)
       settings.faye_client.publish("/clients", ::JSON.generate(message))
-      # store_question(message)
+      store_question(message)
       { :response => "added question" }.to_json
     end
 
