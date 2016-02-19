@@ -91,7 +91,12 @@ module Crosaint
     end
 
     def store_question(message)
-      @table.items.create(message)
+      @dynamo_db.put_item(:table_name => "hack_day", :item => {
+        "QuestionID" => { "s" => message['QuestionID']},
+        "endTime" => { "s" =>  message['endTime']},
+        "questionText" => { "s" =>  message['questionText']},
+        "startTime" => { "s" =>  message['startTime']}
+        })
     end
   end
 end
