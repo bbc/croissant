@@ -5,8 +5,6 @@ require "rest-client"
 require "openssl"
 require "json"
 require "faye"
-require "yaml"
-require "pry"
 
 module Crosaint
   class App < Sinatra::Base
