@@ -51,10 +51,13 @@ module Crosaint
 
     post "/questions" do
       content_type :json
-      message = ::JSON.parse request.body.read
-      settings.faye_client.publish("blue", message)
-      settings.saved_data["/blue"] += [message]
-      { :repsonse => "added quetsion" }.to_json
+      # message = ::JSON.parse request.body.read
+      # settings.faye_client.publish("blue", message)
+      # settings.saved_data["/blue"] += [message]
+      resp = ::JSON.parse request.body.read
+      message = {'QuestionID' => SecureRandom.uuid}.merge(resp)
+      settings.faye_client.publish("/clients", message.to_s)
+      { :response => "added question" }.to_json
     end
 
     get "/status" do

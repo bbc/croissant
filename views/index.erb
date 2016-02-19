@@ -24,6 +24,10 @@
       faye_client.subscribe( '/yellow', function( data ) {
         var div = $( 'ul#yellow-messages' ).append( '<li>' + data + '</li>' );
       });
+
+      faye_client.subscribe( '/clients', function( data ) {
+        var div = $( 'ul#clients' ).append( '<li>' + data + '</li>' );
+      });
     </script>
 
     <script type="text/javascript">
@@ -152,6 +156,8 @@
             </div>
           </div>
         </div>
+
+        <ul id="clients"></ul>
       </div>
 
     </div>
