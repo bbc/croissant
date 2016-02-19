@@ -21,16 +21,13 @@ module Crosaint
     end
 
     set :public_folder, File.expand_path("../", __FILE__)
-    set :port, 9292
     set :faye_client, Faye::Client.new("http://localhost:9292/faye")
-    set :saved_data, Hash.new([])
 
     before do
       request.path_info.sub! %r{/$}, ""
     end
 
     get "/" do
-      @saved_data = settings.saved_data
       erb :index
     end
 
@@ -46,13 +43,9 @@ module Crosaint
     end
 
     post "/" do
-      channel = params["channel"]
-      message = params["message"]
-
-      settings.faye_client.publish(channel, message)
-      settings.saved_data[channel] += [message]
-
-      redirect to("/")
+      content_type :json
+      resp = ::JSON.parse request.body.read
+      { :repsonse => "added answer", :voted => resp["vote"]}.to_json
     end
 
     post "/questions" do
@@ -60,7 +53,8 @@ module Crosaint
       resp = ::JSON.parse request.body.read
       message = {'QuestionID' => SecureRandom.uuid}.merge(resp)
       settings.faye_client.publish("/clients", message.to_s)
-      { :response => "added question", :voted => resp["vote"] }.to_json
+      store_question(message)
+      { :response => "added question" }.to_json
     end
 
     get "/status" do
@@ -71,6 +65,9 @@ module Crosaint
       self.class.tap do |s|
         s.configure { s.disable :show_exceptions, :raise_errors }
       end
+    end
+    def store_question(message)
+      @table.items.create(message)
     end
   end
 end
