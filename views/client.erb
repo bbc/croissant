@@ -68,7 +68,7 @@
       function post_data(vote) {
         $.ajax({
           method: "POST",
-          url: "/questions",
+          url: "/",
           data: JSON.stringify({ vote: vote })
         })
         .fail(function(x, status, err){
