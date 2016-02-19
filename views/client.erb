@@ -26,8 +26,7 @@
     <div id="question">
       <div class="container">
         <div class="row">
-          <p>
-            Should Donald Trump be made president of the European Union?
+          <p id="the-question">
           </p>
         </div>
       </div>
@@ -57,6 +56,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
     <script type="text/javascript" src="http://localhost:9292/faye/client.js"></script>
     <script>
+    $('#progressBar').hide();
     // Voting
 
     $("#vote-yes").bind("click", function(){
@@ -87,7 +87,36 @@
     var faye_client = new Faye.Client('http://localhost:9292/faye');
     faye_client.subscribe('/clients', function (data) {
       console.log(data)
-      //var div = $('ul#clients').append('<li>' + data + '</li>');
+
+      /*
+         {
+          "QuestionID"=>"95de5c71-c03a-4bf2-bbb4-8896b8035919",
+          "startTime"=>"Fri Feb 19 2016 11:30:00 GMT+0000 (GMT)",
+          "endTime"=>"Fri Feb 19 2016 12:00:00 GMT+0000 (GMT)",
+          "questionText"=>"a thing needs your opinion?"
+         }
+      */
+
+      data = JSON.parse(data);
+
+      var _initial = data.startTime;
+      var _end = data.endTime
+      var fromTime = new Date(_initial);
+      var currentTime = new Date();
+      var toTime = new Date(_end);
+
+      var totalDifferenceTravel = toTime.getTime() - fromTime.getTime();
+      var currentDifferenceTravel = currentTime.getTime() - fromTime.getTime();
+
+      var time_passed_in_seconds = Math.floor((currentDifferenceTravel) / (1000));
+      var allowed_timeframe_in_seconds = Math.floor((totalDifferenceTravel) / (1000));
+
+      //console.log("time passed: %s (%s)", time_passed_in_seconds/60, time_passed_in_seconds);
+      //console.log("allowed time: %s (%s)", allowed_timeframe_in_seconds/60, allowed_timeframe_in_seconds);
+
+      $('#the-question').text(data.questionText)
+      $('#progressBar').show()
+      progress(time_passed_in_seconds, allowed_timeframe_in_seconds, $('#progressBar'));
     });
 
     // Progress bar
@@ -101,8 +130,6 @@
         }, 1000);
       }
     };
-
-    progress(60, 60, $('#progressBar'));
     </script>
   </body>
 </html>

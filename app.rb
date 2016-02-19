@@ -5,6 +5,7 @@ require "rest-client"
 require "openssl"
 require "json"
 require "faye"
+require "pry"
 
 module Crosaint
   class App < Sinatra::Base
@@ -74,8 +75,8 @@ module Crosaint
       content_type :json
       resp = ::JSON.parse request.body.read
       message = { "QuestionID" => SecureRandom.uuid }.merge(resp)
-      settings.faye_client.publish("/clients", message.to_s)
-      store_question(message)
+      settings.faye_client.publish("/clients", ::JSON.generate(message))
+      # store_question(message)
       { :response => "added question" }.to_json
     end
 
