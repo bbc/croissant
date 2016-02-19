@@ -50,35 +50,59 @@
       </div>
     </div>
 
-    <div id="footer">
-      <div id="progress">
-      </div>
+    <div id="progressBar">
+      <div></div>
     </div>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+    <script type="text/javascript" src="http://localhost:9292/faye/client.js"></script>
     <script>
-      $("#vote-yes").bind("click", function(){
-        post_data("yes")
-      })
+    // Voting
 
-      $("#vote-no").bind("click", function(){
-        post_data("no")
-      })
+    $("#vote-yes").bind("click", function(){
+      post_data("yes")
+    })
 
-      function post_data(vote) {
-        $.ajax({
-          method: "POST",
-          url: "/",
-          data: JSON.stringify({ vote: vote })
-        })
-        .fail(function(x, status, err){
-          console.error(x, status, err)
-        })
-        .done(function(msg){
-          console.log("response: ", msg)
-          alert("thanks, you voted: " + msg.voted)
-        })
+    $("#vote-no").bind("click", function(){
+      post_data("no")
+    })
+
+    function post_data(vote) {
+      $.ajax({
+        method: "POST",
+        url: "/",
+        data: JSON.stringify({ vote: vote })
+      })
+      .fail(function(jQxhr, status, err){
+        console.error(jQxhr, status, err)
+      })
+      .done(function(msg){
+        console.log("response: ", msg)
+        alert("thanks, you voted: " + msg.voted)
+      })
+    }
+
+    // Faye subscription to new questions endpoint
+
+    var faye_client = new Faye.Client('http://localhost:9292/faye');
+    faye_client.subscribe('/clients', function (data) {
+      console.log(data)
+      //var div = $('ul#clients').append('<li>' + data + '</li>');
+    });
+
+    // Progress bar
+
+    function progress(timeleft, timetotal, $element) {
+      var progressBarWidth = timeleft * $element.width() / timetotal;
+      $element.find('div').animate({ width: progressBarWidth }, timeleft == timetotal ? 0 : 1000, 'linear').html(timeleft + " secs");
+      if(timeleft > 0) {
+        setTimeout(function() {
+          progress(timeleft - 1, timetotal, $element);
+        }, 1000);
       }
+    };
+
+    progress(60, 60, $('#progressBar'));
     </script>
   </body>
 </html>

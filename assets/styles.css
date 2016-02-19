@@ -84,30 +84,21 @@
   }
 }
 
-#footer {
+#progressBar {
   position: absolute;
   bottom: 0;
   width: 100%;
-  /* Set the fixed height of the footer here */
+  margin: 70px auto 0;
   height: 60px;
-  background-color: rgb(5, 73, 74);
+  background-color: #0A5F44;
 }
 
-#footer #progress {
-  background-color: rgb(16, 112, 111);
+#progressBar div {
   height: 100%;
-  animation-duration: 30s;
-  animation-name: progress;
-  animation-iteration-count: infinite;
-  animation-timing-function: linear;
-}
-
-@keyframes progress {
-  from {
-    width: 100%;
-  }
-
-  to {
-    width: 0%;
-  }
+  text-align: right;
+  padding: 0 10px;
+  line-height: 60px; /* same as #progressBar height if we want text middle aligned */
+  width: 0;
+  background-color: #CBEA00;
+  box-sizing: border-box;
 }
