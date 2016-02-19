@@ -5,6 +5,8 @@ require "rest-client"
 require "openssl"
 require "json"
 require "faye"
+require "yaml"
+require "pry"
 
 module Crosaint
   class App < Sinatra::Base
@@ -14,8 +16,6 @@ module Crosaint
 
     def initialize(config)
       @config = config
-      dynamo_db = AWS::DynamoDB.new
-      @table = dynamo_db.tables['hack_day']
       configure
       super()
     end
@@ -31,6 +31,10 @@ module Crosaint
       erb :index
     end
 
+    get "/client" do
+      erb :client
+    end
+
     get "/questions" do
     end
 
@@ -41,12 +45,7 @@ module Crosaint
     post "/" do
       content_type :json
       resp = ::JSON.parse request.body.read
-      item = @table.items[resp["QuestionID"]]
-      count = item.attributes[resp["answer"]] + 1
-      item.attributes.update do |u|
-         u.set resp["answer"] => count
-       end
-       { :repsonse => "added answer" }.to_json
+      { :repsonse => "added answer", :voted => resp["vote"]}.to_json
     end
 
     post "/questions" do
@@ -55,7 +54,7 @@ module Crosaint
       message = {'QuestionID' => SecureRandom.uuid}.merge(resp)
       settings.faye_client.publish("/clients", message.to_s)
       store_question(message)
-      { :repsonse => "added quetsion" }.to_json
+      { :response => "added question" }.to_json
     end
 
     get "/status" do

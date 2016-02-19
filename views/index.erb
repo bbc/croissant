@@ -8,19 +8,8 @@
 
     <script type="text/javascript">
       var faye_client = new Faye.Client('http://localhost:9292/faye');
-
       faye_client.subscribe('/clients', function (data) {
         var div = $('ul#clients').append('<li>' + data + '</li>');
-      });
-    </script>
-
-    <script type="text/javascript">
-      $(document).ready(function () {
-        $('button#submit').click(function () {
-          $.post('/', $('form#send-message').serialize(), function () {
-            $('textarea#message').val('');
-          });
-        });
       });
     </script>
   </head>

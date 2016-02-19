@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="http://localhost:9292/assets/styles.css">
+  </head>
+  <body>
+
+    <div id="header">
+      <div class="container">
+        <div class="row">
+          <h1><img src="http://localhost:9292/assets/logo.svg" alt="" /> croissant</h1>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="row">
+        <h2>vote wot u fink!</h2>
+      </div>
+    </div>
+
+    <div id="question">
+      <div class="container">
+        <div class="row">
+          <p>
+            Should Donald Trump be made president of the European Union?
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div id="answer">
+      <div class="container">
+        <div class="row">
+          <div class="col-xs-6">
+            <a id="vote-no" class="btn btn-default" href="#" role="button">
+              <span class="glyphicon glyphicon-thumbs-down" aria-hidden="true"></span>
+            </a>
+          </div>
+          <div class="col-xs-6">
+            <a id="vote-yes" class="btn btn-default" href="#" role="button">
+              <span class="glyphicon glyphicon-thumbs-up" aria-hidden="true"></span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="footer">
+      <div id="progress">
+      </div>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+    <script>
+      $("#vote-yes").bind("click", function(){
+        post_data("yes")
+      })
+
+      $("#vote-no").bind("click", function(){
+        post_data("no")
+      })
+
+      function post_data(vote) {
+        $.ajax({
+          method: "POST",
+          url: "/",
+          data: JSON.stringify({ vote: vote })
+        })
+        .fail(function(x, status, err){
+          console.error(x, status, err)
+        })
+        .done(function(msg){
+          console.log("response: ", msg)
+          alert("thanks, you voted: " + msg.voted)
+        })
+      }
+    </script>
+  </body>
+</html>
