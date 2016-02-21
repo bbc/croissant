@@ -46,3 +46,5 @@ POST data to the `/questions` endpoint with the following JSON structure
 [David Blooman](https://twitter.com/dblooman)  
 [Mark McDonnell](https://twitter.com/integralist)  
 [Alex Norton](https://twitter.com/alxnorton)
+
+> Note: this was completed as part of a hack day, so please don't judge us on the quality (or lack-thereof) of our code
