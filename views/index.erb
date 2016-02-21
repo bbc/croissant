@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="http://localhost:9292/assets/styles.css">
+  </head>
+  <body>
+
+    <div id="header">
+      <div class="container">
+        <div class="row">
+          <h1><img src="http://localhost:9292/assets/logo.svg" alt="" /> croissant</h1>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="row">
+        <h2>vote wot u fink!</h2>
+      </div>
+    </div>
+
+    <div id="question">
+      <div class="container">
+        <div class="row">
+          <p id="the-question">
+            ...waiting for the first topic discussion
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div id="answer">
+      <div class="container">
+        <div class="row">
+          <div class="col-xs-6">
+            <a id="vote-no" class="btn btn-default" href="#" role="button">
+              <span class="glyphicon glyphicon-thumbs-down" aria-hidden="true"></span>
+            </a>
+          </div>
+          <div class="col-xs-6">
+            <a id="vote-yes" class="btn btn-default" href="#" role="button">
+              <span class="glyphicon glyphicon-thumbs-up" aria-hidden="true"></span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="progressBar">
+      <div></div>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.min.js"></script>
+    <script type="text/javascript" src="http://localhost:9292/faye/client.js"></script>
+    <script>
+    // Hide stuff
+
+    $('#progressBar').hide();
+    $("#vote-yes").hide()
+    $("#vote-no").hide()
+
+    // Voting
+
+    $("#vote-yes").bind("click", function(){
+      post_data("yes", question_id)
+      add_original_question()
+      add_graph_container()
+    })
+
+    $("#vote-no").bind("click", function(){
+      post_data("no", question_id)
+      add_original_question()
+      add_graph_container()
+    })
+
+    function add_graph_container(){
+      $("<canvas/>", {
+        id: "myChart",
+        width: 200,
+        height: 200
+      }).appendTo("#answer");
+    }
+
+    function add_original_question(){
+      $('#answer').append('<p id="blurb">'+question_txt_postevent+'</p>');
+    }
+
+    function post_data(vote, id) {
+      json_data = JSON.stringify({
+        vote: vote,
+        QuestionID: id
+      })
+      console.log("user data posted:", json_data)
+      $("#vote-yes").hide()
+      $("#vote-no").hide()
+      $.ajax({
+        method: "POST",
+        url: "/",
+        data: json_data
+      })
+      .fail(function(jQxhr, status, err){
+        console.error(jQxhr, status, err)
+      })
+      .done(function(msg){
+        console.log("response: ", msg)
+        alert("thanks, you voted: " + msg.voted)
+      })
+    }
+
+    // Faye subscription to new questions endpoint
+
+    var faye_client = new Faye.Client('http://localhost:9292/faye');
+    faye_client.subscribe('/clients', function (data) {
+      $( "#myChart" ).remove();
+      $( "#blurb" ).remove();
+      question_txt_postevent = ""
+      console.log(data)
+
+      /*
+         {
+          "QuestionID"=>"95de5c71-c03a-4bf2-bbb4-8896b8035919",
+          "startTime"=>"Fri Feb 19 2016 11:30:00 GMT+0000 (GMT)",
+          "endTime"=>"Fri Feb 19 2016 12:00:00 GMT+0000 (GMT)",
+          "questionText"=>"a thing needs your opinion?"
+         }
+      */
+
+      data = JSON.parse(data);
+
+      question_txt = data.questionText;
+      question_id = data.QuestionID;
+      var _initial = data.startTime;
+      var _end = data.endTime
+      var fromTime = new Date(_initial);
+      var currentTime = new Date();
+      var toTime = new Date(_end);
+
+      var totalDifferenceTravel = toTime.getTime() - fromTime.getTime();
+      var currentDifferenceTravel = currentTime.getTime() - fromTime.getTime();
+
+      var time_passed_in_seconds = Math.floor((currentDifferenceTravel) / (1000));
+      var allowed_timeframe_in_seconds = Math.floor((totalDifferenceTravel) / (1000));
+      var time_remaining = allowed_timeframe_in_seconds - time_passed_in_seconds
+
+      console.log("allowed time: %s (%s)", allowed_timeframe_in_seconds/60, allowed_timeframe_in_seconds);
+      console.log("time passed: %s (%s)", time_passed_in_seconds/60, time_passed_in_seconds);
+      console.log("time remaining: %s (%s)", time_remaining/60, time_remaining);
+
+      $('#the-question').text(data.questionText)
+      $('#progressBar').show()
+      $("#vote-yes").show()
+      $("#vote-no").show()
+
+      progress(time_remaining, allowed_timeframe_in_seconds, $('#progressBar'));
+      //progress(10, 10, $('#progressBar'));
+    });
+
+    // Progress bar
+
+    function progress(timeleft, timetotal, $element) {
+      var progressBarWidth = timeleft * $element.width() / timetotal;
+      $element.find('div').animate({ width: progressBarWidth }, timeleft == timetotal ? 0 : 1000, 'linear').html(timeleft + " secs");
+      if(timeleft > 0) {
+        setTimeout(function() {
+          progress(timeleft - 1, timetotal, $element);
+        }, 1000);
+      } else {
+        window.setTimeout(function(){
+          alert("This topic discussion has now ended")
+          $('#the-question').text("...waiting for the next topic discussion")
+          $('#progressBar').hide()
+          $("#vote-yes").hide()
+          $("#vote-no").hide()
+          question_txt_postevent = question_txt
+          show_graph()
+        }, 1000)
+      }
+    };
+
+    function show_graph() {
+    $.ajax({
+      method: "GET",
+      url: "http://localhost:9292/results/" + question_id
+    })
+      .fail(function(jQxhr, status, err){
+        console.error(jQxhr, status, err)
+      })
+      .done(function(msg){
+        j = JSON.parse(msg)
+        y = j.yes
+        n = j.no
+    // Graph
+    var ctx = $("#myChart").get(0).getContext("2d");
+    var options = {};
+
+    var data = [
+    {
+        value: y,
+        color:"#F7464A",
+        highlight: "#FF5A5E",
+        label: "Yes"
+    },
+    {
+        value: n,
+        color: "#46BFBD",
+        highlight: "#5AD3D1",
+        label: "No"
+    }
+]
+    var myPieChart = new Chart(ctx).Pie(data,options);
+      })
+    }
+    </script>
+  </body>
+</html>
